@@ -5,7 +5,7 @@ var app = express();
 
 // app.use(express.json());
 // const Sequelize = require('sequelize');
-const port = 3000;
+const port = 3001;
 app.use(
     bodyParser.urlencoded({
         extended: false,
@@ -44,10 +44,42 @@ db.connect((err) => {
 
 app.get('/', (req, res) => res.json({ message: 'Hello World' }))
 
-app.post("/createEvent", (req, res) => {
-    const texts = req.body.texts;
-    console.log(texts);
-    // res.send("Check console.")
+app.post("/createEvent", async (req, res) => {
+    console.log(req.body)
+    let name = req.body.name, date = req.body.date;
+    const update = await db.query(`INSERT INTO events(name, date) VALUES($1, $2) RETURNING * `, [name, date], (err, response) => {
+        if (err) { res.send("Error adding data.") }
+        else { res.send("Added Event and Date") }
+    })
 })
+
+
+app.post("/createUser", async (req, res) => {
+    // console.log(req.body)
+    let name = req.body.name, age = req.body.age, phone = req.body.phone, email = req.body.email, address = req.body.address;
+    const update = await db.query(`INSERT INTO users VALUES($1, $2, $3, $4, $5)`, [name, age, phone, email, address], (err, response) => {
+        if (err) { res.send("Error adding data."); console.log(err) }
+        else { res.send("User Registered") }
+    })
+})
+
+app.get("/getEvents", (req, res) => {
+    db.query("SELECT * FROM events", (err, response) => {
+        if (response) { res.send(response.rows) }
+        else { res.send(err) }
+    })
+})
+
+
+
+
+
+fetch('/createEvent', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+
+});
 
 app.listen(port, () => console.log(`App listening on port ${port}!`))
